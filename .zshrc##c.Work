@@ -1,0 +1,115 @@
+# If you come from bash you might have to change your $PATH.
+# export PATH=$HOME/bin:/usr/local/bin:$PATH
+
+POWERLEVEL9K_MODE="nerdfont-complete"
+setopt inc_append_history
+setopt share_history
+
+# User configuration
+
+DEFAULT_USER=`whoami`
+DISABLE_AUTO_TITLE="true"
+tab_title() {
+  # sets the tab title to current dir
+  echo -ne "\e]1;${PWD##*/}\a"
+}
+
+# Set personal aliases, overriding those provided by oh-my-zsh libs,
+# plugins, and themes. Aliases can be placed here, though oh-my-zsh
+# users are encouraged to define aliases within the ZSH_CUSTOM folder.
+# For a full list of active aliases, run `alias`.
+#
+# Example aliases
+alias zshconfig="code ~/.zshrc"
+alias tf="terraform"
+alias ..="cd .."
+alias ...="cd ../.."
+alias ....="cd ../../.."
+alias ll="ls -lah"
+alias la="ls -la"
+
+# ensure ls uses colors
+if [[ "$OSTYPE" == darwin* ]]; then
+  alias ls="ls -G"
+else
+  alias ls="ls --color=auto"
+fi
+
+# Exports! Basic env variables mostly. For secrets use ~/.env file
+export GOPATH=$HOME/go
+export GOROOT=/usr/local/opt/go/libexec
+export EDITOR="micro"
+export NVM_DIR="$HOME/.nvm"
+export PYENV_ROOT="$HOME/.pyenv"
+export PATH="${KREW_ROOT:-$HOME/.krew}/bin:$GOPATH/bin:$PYENV_ROOT/bin:$HOME/.poetry/bin:$HOME/.cargo/bin:$PATH"
+fpath+=~/.zfunc
+
+whoseport() {
+  lsof -i ":$1" | grep LISTEN
+}
+
+if [ -f "$HOME/.env" ];
+then
+    source "$HOME/.env"
+fi
+
+[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
+
+# To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
+[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
+
+# Load NVM
+load_nvm() {
+	source $(brew --prefix nvm)/nvm.sh
+}
+
+## ZPLUG
+
+export ZPLUG_HOME=/usr/local/opt/zplug
+source $ZPLUG_HOME/init.zsh
+
+# Powerlevel 10k Theme
+zplug romkatv/powerlevel10k, as:theme, depth:1
+
+# Load oh-my-zsh plugins
+zplug "plugins/git", from:oh-my-zsh
+zplug "plugins/osx", from:oh-my-zsh
+zplug "plugins/brew", from:oh-my-zsh
+zplug "plugins/kubectl", from:oh-my-zsh
+zplug "plugins/aws", from:oh-my-zsh
+zplug "plugins/docker", from:oh-my-zsh
+zplug "plugins/python", from:oh-my-zsh
+zplug "plugins/golang", from:oh-my-zsh
+zplug "plugins/vscode", from:oh-my-zsh
+zplug "plugins/helm", from:oh-my-zsh
+zplug "plugins/httpie", from:oh-my-zsh
+zplug "plugins/fzf", from:oh-my-zsh
+zplug "plugins/terraform", from:oh-my-zsh
+zplug "plugins/gcloud", from:oh-my-zsh
+zplug "lib/completion", from:oh-my-zsh
+
+# ZSH Plugins
+zplug "zsh-users/zsh-autosuggestions"
+zplug "zsh-users/zsh-completions"
+zplug "zsh-users/zsh-syntax-highlighting", defer:2
+zplug "zsh-users/zsh-history-substring-search", defer:3
+
+# Initialise kubectl-fzf: https://github.com/bonnefoa/kubectl-fzf
+zplug "bonnefoa/kubectl-fzf", defer:3
+
+# Install plugins if there are plugins that have not been installed
+if ! zplug check --verbose; then
+    printf "Install? [y/N]: "
+    if read -q; then
+        echo; zplug install
+    fi
+fi
+
+# zsh-history-substring-search key bindings
+bindkey '^[[A' history-substring-search-up
+bindkey '^[[B' history-substring-search-down
+
+# Then, source plugins and add commands to $PATH
+zplug load
+eval "$(pyenv init -)"
+add-zsh-hook precmd tab_title
