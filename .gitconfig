@@ -27,7 +27,7 @@
 
 [help]
     # Automatically correct and execute mistyped commands
-    autocorrect = 1
+    autocorrect = 30
 
 [push]
     # https://git-scm.com/docs/git-config#git-config-pushdefault
