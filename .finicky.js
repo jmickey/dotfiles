@@ -18,7 +18,8 @@ module.exports = {
 				'snyk.slack.com',
 				'my.pingdom.com',
 				'zoom.us',
-				'app.logz.io'
+				'app.logz.io',
+				'docs.google.com'
 			])],
 			browser: "Firefox",
 		},

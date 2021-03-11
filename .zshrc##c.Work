@@ -1,12 +1,61 @@
-# If you come from bash you might have to change your $PATH.
-# export PATH=$HOME/bin:/usr/local/bin:$PATH
+# Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
+# Initialization code that may require console input (password prompts, [y/n]
+# confirmations, etc.) must go above this block; everything else may go below.
+#if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
+ # source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
+#fi
 
 POWERLEVEL9K_MODE="nerdfont-complete"
-setopt inc_append_history
-setopt share_history
+
+autoload -U colors && colors    # Load colors
+zmodload zsh/complist
+autoload -Uz compinit
+
+unsetopt case_glob              # Use case-insensitve globbing
+setopt globdots                 # Glob dotfiles as well
+setopt extendedglob             # Use extended globbing
+setopt autocd                   # Automatically change directory if a directory is entered
+
+setopt inc_append_history       # Write to the history file immediately, not when the shell exits
+setopt share_history            # Share history between all sessions
+setopt hist_expire_dups_first   # Expire a duplicate event first when trimming history
+setopt hist_ignore_dups         # Do not record an event that was just recorded again
+setopt hist_ignore_all_dups     # Delete an old recorded event if a new event is a duplicate
+
+setopt menu_complete            # Do not autoselect the first completion entry
+setopt no_beep
+
+# See: https://gist.github.com/ctechols/ca1035271ad134841284
+_comp_files=(${ZDOTDIR:-$HOME}/.zcompdump(Nm-20))
+if (( $#_comp_files )); then
+    compinit -i -C
+else
+    compinit -i
+fi
+unset _comp_files
+
+# Zstyle
+
+zstyle ':completion:*:*:*:*:*' menu select
+zstyle ':completion:*:matches' group 'yes'
+zstyle ':completion:*:options' description 'yes'
+zstyle ':completion:*:options' auto-description '%d'
+zstyle ':completion:*:corrections' format ' %F{green}-- %d (errors: %e) --%f'
+zstyle ':completion:*:descriptions' format ' %F{yellow}-- %d --%f'
+zstyle ':completion:*:messages' format ' %F{purple} -- %d --%f'
+zstyle ':completion:*:warnings' format ' %F{red}-- no matches found --%f'
+zstyle ':completion:*:default' list-prompt '%S%M matches%s'
+zstyle ':completion:*' format ' %F{yellow}-- %d --%f'
+zstyle ':completion:*' group-name ''
+zstyle ':completion:*' verbose yes
+zstyle ':completion::complete:*' use-cache on
+zstyle ':completion::complete:*' cache-path "$HOME/.zcompcache"
+zstyle ':completion:*:*:kill:*:processes' list-colors '=(#b) #([0-9]#) ([0-9a-z-]#)*=01;34=0=01'
+zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}' 'r:|[._-]=* r:|=*' 'l:|=* r:|=*'
+zstyle ':completion:*:functions' ignored-patterns '(_*|pre(cmd|exec))'
+zstyle ':completion:*' rehash true
 
 # User configuration
-
 DEFAULT_USER=`whoami`
 DISABLE_AUTO_TITLE="true"
 tab_title() {
@@ -14,12 +63,7 @@ tab_title() {
   echo -ne "\e]1;${PWD##*/}\a"
 }
 
-# Set personal aliases, overriding those provided by oh-my-zsh libs,
-# plugins, and themes. Aliases can be placed here, though oh-my-zsh
-# users are encouraged to define aliases within the ZSH_CUSTOM folder.
-# For a full list of active aliases, run `alias`.
-#
-# Example aliases
+# Aliases
 alias zshconfig="code ~/.zshrc"
 alias tf="terraform"
 alias ..="cd .."
@@ -27,8 +71,9 @@ alias ...="cd ../.."
 alias ....="cd ../../.."
 alias ll="ls -lah"
 alias la="ls -la"
+alias cat="bat"
 
-# ensure ls uses colors
+# Ensure ls uses colors
 if [[ "$OSTYPE" == darwin* ]]; then
   alias ls="ls -G"
 else
@@ -36,80 +81,90 @@ else
 fi
 
 # Exports! Basic env variables mostly. For secrets use ~/.env file
+export CLICOLOR=1
 export GOPATH=$HOME/go
 export GOROOT=/usr/local/opt/go/libexec
 export EDITOR="micro"
-export NVM_DIR="$HOME/.nvm"
 export PYENV_ROOT="$HOME/.pyenv"
-export PATH="${KREW_ROOT:-$HOME/.krew}/bin:$GOPATH/bin:$PYENV_ROOT/bin:$HOME/.poetry/bin:$HOME/.cargo/bin:$PATH"
+export POETRY_ROOT="$HOME/.poetry"
+export CARGO_ROOT="$HOME/.cargo"
+export SQLITE_ROOT="/usr/local/opt/sqlite"
+export PATH="$GOPATH/bin:$PYENV_ROOT/bin:$POETRY_ROOT/bin:$CARGO_ROOT/bin:$SQLITE_ROOT/bin:$PATH"
 fpath+=~/.zfunc
 
 whoseport() {
   lsof -i ":$1" | grep LISTEN
 }
 
-if [ -f "$HOME/.env" ];
-then
-    source "$HOME/.env"
-fi
-
+# Load secret .env file if it exists
+[ -f "$HOME/.env" ] && source "$HOME/.env"
+# Load fzf
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
-
-# To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
-[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
-
-# Load NVM
-load_nvm() {
-	source $(brew --prefix nvm)/nvm.sh
-}
-
-## ZPLUG
-
-export ZPLUG_HOME=/usr/local/opt/zplug
-source $ZPLUG_HOME/init.zsh
-
-# Powerlevel 10k Theme
-zplug romkatv/powerlevel10k, as:theme, depth:1
-
-# Load oh-my-zsh plugins
-zplug "plugins/git", from:oh-my-zsh
-zplug "plugins/osx", from:oh-my-zsh
-zplug "plugins/brew", from:oh-my-zsh
-zplug "plugins/kubectl", from:oh-my-zsh
-zplug "plugins/aws", from:oh-my-zsh
-zplug "plugins/docker", from:oh-my-zsh
-zplug "plugins/python", from:oh-my-zsh
-zplug "plugins/golang", from:oh-my-zsh
-zplug "plugins/vscode", from:oh-my-zsh
-zplug "plugins/helm", from:oh-my-zsh
-zplug "plugins/httpie", from:oh-my-zsh
-zplug "plugins/fzf", from:oh-my-zsh
-zplug "plugins/terraform", from:oh-my-zsh
-zplug "plugins/gcloud", from:oh-my-zsh
-zplug "lib/completion", from:oh-my-zsh
-
-# ZSH Plugins
-zplug "zsh-users/zsh-autosuggestions"
-zplug "zsh-users/zsh-completions"
-zplug "zsh-users/zsh-syntax-highlighting", defer:2
-zplug "zsh-users/zsh-history-substring-search", defer:3
-
-# Initialise kubectl-fzf: https://github.com/bonnefoa/kubectl-fzf
-zplug "bonnefoa/kubectl-fzf", defer:3
-
-# Install plugins if there are plugins that have not been installed
-if ! zplug check --verbose; then
-    printf "Install? [y/N]: "
-    if read -q; then
-        echo; zplug install
-    fi
-fi
 
 # zsh-history-substring-search key bindings
 bindkey '^[[A' history-substring-search-up
 bindkey '^[[B' history-substring-search-down
 
-# Then, source plugins and add commands to $PATH
-zplug load
-eval "$(pyenv init -)"
+# eval "$(pyenv init -)"
+autoload -Uz add-zsh-hook
 add-zsh-hook precmd tab_title
+
+### Added by Zinit's installer
+
+if [[ ! -f $HOME/.zinit/bin/zinit.zsh ]]; then
+    print -P "%F{33}▓▒░ %F{220}Installing %F{33}DHARMA%F{220} Initiative Plugin Manager (%F{33}zdharma/zinit%F{220})…%f"
+    command mkdir -p "$HOME/.zinit" && command chmod g-rwX "$HOME/.zinit"
+    command git clone https://github.com/zdharma/zinit "$HOME/.zinit/bin" && \
+        print -P "%F{33}▓▒░ %F{34}Installation successful.%f%b" || \
+        print -P "%F{160}▓▒░ The clone has failed.%f%b"
+fi
+
+source "$HOME/.zinit/bin/zinit.zsh"
+autoload -Uz _zinit
+(( ${+_comps} )) && _comps[zinit]=_zinit
+
+### End of Zinit's installer chunk
+
+## Zinit Plugins!
+setopt promptsubst
+PS1="READY >"
+zinit ice wait'!' lucid
+zinit ice depth=1; zinit light romkatv/powerlevel10k
+
+zinit light Aloxaf/fzf-tab
+
+zinit wait lucid for \
+    light-mode  zdharma/history-search-multi-word \
+                zsh-users/zsh-history-substring-search
+
+zinit wait'0a' lucid light-mode for \
+    OMZ::lib/compfix.zsh \
+    OMZ::lib/completion.zsh \
+    OMZ::lib/functions.zsh \
+    OMZ::lib/diagnostics.zsh \
+    OMZ::lib/misc.zsh \
+    OMZ::lib/spectrum.zsh \
+    OMZ::lib/termsupport.zsh \
+    OMZ::lib/git.zsh \
+    OMZ::lib/grep.zsh \
+    OMZ::plugins/kubectl/kubectl.plugin.zsh \
+    OMZ::plugins/asdf/asdf.plugin.zsh \
+  as"completion" \
+    OMZ::plugins/docker/_docker \
+    OMZ::plugins/thefuck/thefuck.plugin.zsh
+
+
+zinit ice svn lucid wait'0b' atinit"local ZSH=\$PWD"
+zinit snippet OMZ::plugins/osx
+
+zinit wait lucid light-mode for \
+  atinit"ZINIT[COMPINIT_OPTS]=-C; \
+    zicompinit; zicdreplay" \
+      zdharma/fast-syntax-highlighting \
+  blockf atpull'zinit creinstall -q .' \
+    zsh-users/zsh-completions \
+  atload"!_zsh_autosuggest_start" \
+    zsh-users/zsh-autosuggestions
+
+# To customize prompt, run `p10k configure` or edit ~/.p10k.zsh
+[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh

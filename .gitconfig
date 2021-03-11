@@ -1,6 +1,6 @@
 [core]
     excludesfile = ~/.gitignore
-    pager = less -FRX
+    pager = delta
 
 [url "git@github.com:"]
     insteadOf = "gh:"
@@ -38,9 +38,35 @@
 [user]
     name = Josh Michielsen
     email = github@mickey.dev
-	signingkey = FCC1BEAA5F87CDB1
+    signingkey = FCC1BEAA5F87CDB1
 
 [commit]
-	gpgsign = true
+    gpgsign = true
+
 [pull]
-	rebase = false
+    rebase = false
+
+[alias]
+    pl = pull
+    ps = push
+    st = status
+    c = commit
+    cm = commit -m
+    co = checkout
+    cob = checkout -b
+    last = log -1 HEAD
+
+[init]
+	defaultBranch = main
+
+[interactive]
+    diffFilter = delta --color-only
+
+[delta]
+    features = side-by-side line-numbers decorations
+    whitespace-error-style = 22 reverse
+
+[delta "decorations"]
+    commit-decoration-style = bold yellow box ul
+    file-style = bold yellow ul
+    file-decoration-style = none
