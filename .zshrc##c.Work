@@ -7,14 +7,23 @@
 
 POWERLEVEL9K_MODE="nerdfont-complete"
 
+HISTSIZE=5000
+SAVEHIST=3000
+
 autoload -U colors && colors    # Load colors
 zmodload zsh/complist
 autoload -Uz compinit
 
-unsetopt case_glob              # Use case-insensitve globbing
+autoload -z edit-command-line
+zle -N edit-command-line
+bindkey "^X^E" edit-command-line
+
+setopt no_case_glob              # Use case-insensitve globbing
 setopt globdots                 # Glob dotfiles as well
 setopt extendedglob             # Use extended globbing
 setopt autocd                   # Automatically change directory if a directory is entered
+setopt auto_pushd
+setopt rc_quotes
 
 setopt inc_append_history       # Write to the history file immediately, not when the shell exits
 setopt share_history            # Share history between all sessions
@@ -36,24 +45,23 @@ unset _comp_files
 
 # Zstyle
 
-zstyle ':completion:*:*:*:*:*' menu select
 zstyle ':completion:*:matches' group 'yes'
 zstyle ':completion:*:options' description 'yes'
 zstyle ':completion:*:options' auto-description '%d'
 zstyle ':completion:*:corrections' format ' %F{green}-- %d (errors: %e) --%f'
-zstyle ':completion:*:descriptions' format ' %F{yellow}-- %d --%f'
+zstyle ':completion:*:descriptions' format '[%d]'
 zstyle ':completion:*:messages' format ' %F{purple} -- %d --%f'
 zstyle ':completion:*:warnings' format ' %F{red}-- no matches found --%f'
 zstyle ':completion:*:default' list-prompt '%S%M matches%s'
-zstyle ':completion:*' format ' %F{yellow}-- %d --%f'
 zstyle ':completion:*' group-name ''
 zstyle ':completion:*' verbose yes
 zstyle ':completion::complete:*' use-cache on
 zstyle ':completion::complete:*' cache-path "$HOME/.zcompcache"
 zstyle ':completion:*:*:kill:*:processes' list-colors '=(#b) #([0-9]#) ([0-9a-z-]#)*=01;34=0=01'
-zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}' 'r:|[._-]=* r:|=*' 'l:|=* r:|=*'
 zstyle ':completion:*:functions' ignored-patterns '(_*|pre(cmd|exec))'
 zstyle ':completion:*' rehash true
+
+zstyle ':fzf-tab:*' switch-group ',' '.'
 
 # User configuration
 DEFAULT_USER=`whoami`
@@ -149,6 +157,8 @@ zinit wait'0a' lucid light-mode for \
     OMZ::lib/grep.zsh \
     OMZ::plugins/kubectl/kubectl.plugin.zsh \
     OMZ::plugins/asdf/asdf.plugin.zsh \
+  atload"unalias grv g" \
+      OMZ::plugins/git/git.plugin.zsh \
   as"completion" \
     OMZ::plugins/docker/_docker \
     OMZ::plugins/thefuck/thefuck.plugin.zsh
