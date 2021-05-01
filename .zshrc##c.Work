@@ -104,6 +104,18 @@ whoseport() {
   lsof -i ":$1" | grep LISTEN
 }
 
+tunnel() {
+  ssh -Nn -D 127.0.0.1:2424 "$1" &
+  SSH_PID=$!
+  export HTTPS_PROXY=socks5://localhost:2424
+}
+
+ktunnel() {
+  if [[ -z ${SSH_PID+x} ]]; then echo "PID not set" && return 1; fi
+  kill $SSH_PID
+  unset SSH_PID HTTPS_PROXY
+}
+
 # Load secret .env file if it exists
 [ -f "$HOME/.env" ] && source "$HOME/.env"
 # Load fzf
