@@ -12,7 +12,6 @@ SAVEHIST=3000
 
 autoload -U colors && colors    # Load colors
 zmodload zsh/complist
-autoload -Uz compinit
 
 autoload -z edit-command-line
 zle -N edit-command-line
@@ -33,15 +32,6 @@ setopt hist_ignore_all_dups     # Delete an old recorded event if a new event is
 
 setopt menu_complete            # Do not autoselect the first completion entry
 setopt no_beep
-
-# See: https://gist.github.com/ctechols/ca1035271ad134841284
-_comp_files=(${ZDOTDIR:-$HOME}/.zcompdump(Nm-20))
-if (( $#_comp_files )); then
-    compinit -i -C
-else
-    compinit -i
-fi
-unset _comp_files
 
 # Zstyle
 
@@ -167,7 +157,6 @@ zinit wait'0a' lucid light-mode for \
     OMZ::lib/termsupport.zsh \
     OMZ::lib/git.zsh \
     OMZ::lib/grep.zsh \
-    OMZ::plugins/kubectl/kubectl.plugin.zsh \
     OMZ::plugins/asdf/asdf.plugin.zsh \
   atload"unalias grv g" \
       OMZ::plugins/git/git.plugin.zsh \
@@ -183,10 +172,19 @@ zinit wait lucid light-mode for \
   atinit"ZINIT[COMPINIT_OPTS]=-C; \
     zicompinit; zicdreplay" \
       zdharma/fast-syntax-highlighting \
-  blockf atpull'zinit creinstall -q .' \
-    zsh-users/zsh-completions \
   atload"!_zsh_autosuggest_start" \
     zsh-users/zsh-autosuggestions
+
+zinit wait lucid atload="zicompinit; zicdreplay" atpull'zinit creinstall -q .' blockf for \
+  zsh-users/zsh-completions
+
+zinit light-mode lucid wait has"kubectl" for \
+  id-as"kubectl_completion" \
+  as"completion" \
+  atclone"kubectl completion zsh > _kubectl" \
+  atpull"%atclone" \
+  run-atpull \
+    zdharma/null
 
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
