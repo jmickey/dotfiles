@@ -144,8 +144,8 @@ zinit ice depth=1; zinit light romkatv/powerlevel10k
 zinit light Aloxaf/fzf-tab
 
 zinit wait lucid for \
-    light-mode  zdharma/history-search-multi-word \
-                zsh-users/zsh-history-substring-search
+    light-mode zdharma/history-search-multi-word \
+               zsh-users/zsh-history-substring-search
 
 zinit wait'0a' lucid light-mode for \
     OMZ::lib/compfix.zsh \
@@ -158,6 +158,7 @@ zinit wait'0a' lucid light-mode for \
     OMZ::lib/git.zsh \
     OMZ::lib/grep.zsh \
     OMZ::plugins/asdf/asdf.plugin.zsh \
+    OMZ::plugins/kubectl/kubectl.plugin.zsh \
   atload"unalias grv g" \
       OMZ::plugins/git/git.plugin.zsh \
   as"completion" \
@@ -169,22 +170,26 @@ zinit ice svn lucid wait'0b' atinit"local ZSH=\$PWD"
 zinit snippet OMZ::plugins/osx
 
 zinit wait lucid light-mode for \
-  atinit"ZINIT[COMPINIT_OPTS]=-C; \
-    zicompinit; zicdreplay" \
-      zdharma/fast-syntax-highlighting \
+  has"kubectl" \
+    id-as"kubectl_completion" \
+    as"completion" \
+    atclone"kubectl completion zsh > _kubectl" \
+    atpull"%atclone" \
+    run-atpull \
+      zdharma/null \
+  atload"zicompinit; zicdreplay" \
+    @bonnefoa/kubectl-fzf \
+  blockf \
+    zsh-users/zsh-completions \
+  atinit"typeset -gA FAST_HIGHLIGHT; \
+         FAST_HIGHLIGHT[git-cmsg-len]=70; \
+         ZINIT[COMPINIT_OPTS]=-C; \
+         zicompinit; zicdreplay" \
+    zdharma/fast-syntax-highlighting \
   atload"!_zsh_autosuggest_start" \
-    zsh-users/zsh-autosuggestions
+      zsh-users/zsh-autosuggestions
 
-zinit wait lucid atload="zicompinit; zicdreplay" atpull'zinit creinstall -q .' blockf for \
-  zsh-users/zsh-completions
-
-zinit light-mode lucid wait has"kubectl" for \
-  id-as"kubectl_completion" \
-  as"completion" \
-  atclone"kubectl completion zsh > _kubectl" \
-  atpull"%atclone" \
-  run-atpull \
-    zdharma/null
+export ZSH_AUTOSUGGEST_USE_ASYNC=1
 
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
