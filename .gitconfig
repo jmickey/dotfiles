@@ -2,9 +2,24 @@
     excludesfile = ~/.gitignore
     pager = delta
 
+[interactive]
+    diffFilter = delta --color-only
+
+[add.interactive]
+    useBuiltin = false
+
+[merge]
+    conflictstyle = diff3
+
+[diff]
+    colorMoved = default
+
 [url "git@github.com:"]
     insteadOf = "gh:"
     pushInsteadOf = "git://github.com/"
+
+[url "ssh://git@github.com/"]
+    insteadOf = https://github.com/
 
 [color]
     ui = true
@@ -34,11 +49,12 @@
     default = current
     # Make `git push` push relevant annotated tags when pushing branches out.
     followTags = true
+	autoSetupRemote = true
 
 [user]
     name = Josh Michielsen
     email = github@mickey.dev
-    signingkey = FCC1BEAA5F87CDB1
+	signingkey = EC7B9537E6ED431175627703FCC1BEAA5F87CDB1
 
 [commit]
     gpgsign = true
@@ -57,14 +73,14 @@
     last = log -1 HEAD
 
 [init]
-	defaultBranch = main
-
-[interactive]
-    diffFilter = delta --color-only
+    defaultBranch = main
 
 [delta]
-    features = side-by-side line-numbers decorations
+    features = line-numbers decorations
+    side-by-side = true
     whitespace-error-style = 22 reverse
+    navigate = true
+    dark = true
 
 [delta "decorations"]
     commit-decoration-style = bold yellow box ul

@@ -88,6 +88,7 @@ export POETRY_ROOT="$HOME/.poetry"
 export CARGO_ROOT="$HOME/.cargo"
 export SQLITE_ROOT="/usr/local/opt/sqlite"
 export PATH="$GOPATH/bin:$PYENV_ROOT/bin:$POETRY_ROOT/bin:$CARGO_ROOT/bin:$SQLITE_ROOT/bin:$PATH"
+
 fpath+=~/.zfunc
 
 whoseport() {
@@ -122,9 +123,9 @@ add-zsh-hook precmd tab_title
 ### Added by Zinit's installer
 
 if [[ ! -f $HOME/.zinit/bin/zinit.zsh ]]; then
-    print -P "%F{33}▓▒░ %F{220}Installing %F{33}DHARMA%F{220} Initiative Plugin Manager (%F{33}zdharma/zinit%F{220})…%f"
+    print -P "%F{33}▓▒░ %F{220}Installing %F{33}DHARMA%F{220} Initiative Plugin Manager (%F{33}zdharma-continuum/zinit%F{220})…%f"
     command mkdir -p "$HOME/.zinit" && command chmod g-rwX "$HOME/.zinit"
-    command git clone https://github.com/zdharma/zinit "$HOME/.zinit/bin" && \
+    command git clone https://github.com/zdharma-continuum/zinit "$HOME/.zinit/bin" && \
         print -P "%F{33}▓▒░ %F{34}Installation successful.%f%b" || \
         print -P "%F{160}▓▒░ The clone has failed.%f%b"
 fi
@@ -144,7 +145,7 @@ zinit ice depth=1; zinit light romkatv/powerlevel10k
 zinit light Aloxaf/fzf-tab
 
 zinit wait lucid for \
-    light-mode zdharma/history-search-multi-word \
+    light-mode zdharma-continuum/history-search-multi-word \
                zsh-users/zsh-history-substring-search
 
 zinit wait'0a' lucid light-mode for \
@@ -167,7 +168,7 @@ zinit wait'0a' lucid light-mode for \
 
 
 zinit ice svn lucid wait'0b' atinit"local ZSH=\$PWD"
-zinit snippet OMZ::plugins/osx
+zinit snippet OMZ::plugins/macos
 
 zinit wait lucid light-mode for \
   has"kubectl" \
@@ -176,7 +177,7 @@ zinit wait lucid light-mode for \
     atclone"kubectl completion zsh > _kubectl" \
     atpull"%atclone" \
     run-atpull \
-      zdharma/null \
+      @jmickey/zinit-null \
   atload"zicompinit; zicdreplay" \
     @bonnefoa/kubectl-fzf \
   blockf \
@@ -185,7 +186,7 @@ zinit wait lucid light-mode for \
          FAST_HIGHLIGHT[git-cmsg-len]=70; \
          ZINIT[COMPINIT_OPTS]=-C; \
          zicompinit; zicdreplay" \
-    zdharma/fast-syntax-highlighting \
+    zdharma-continuum/fast-syntax-highlighting \
   atload"!_zsh_autosuggest_start" \
       zsh-users/zsh-autosuggestions
 

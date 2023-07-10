@@ -1,35 +1,38 @@
 module.exports = {
 	defaultBrowser: "Firefox Developer Edition",
+	options: {
+	  hideIcon: false,
+	},
 	handlers: [
 		{
-			match: [ /zoom.us\/j\//, /snyk.zoom.us\/j\//],
+			match: [ /zoom.us\/j\//, /weaveworks.zoom.us\/j\//],
 			browser: "us.zoom.xos"
 		},
 		{
-			match: finicky.matchDomains("twitter.com"),
+			match: finicky.matchDomains([
+			  "twitter.com",
+			  "linkedin.com"
+			]),
 			browser: "Firefox Developer Edition"
 		},
 		{
-			match: [/snyk/, finicky.matchHostnames([
-				'snyksec.atlassian.net',
+			match: [/weaveworks/, /open-component-model/, finicky.matchHostnames([
+				'zenhub.com',
 				'notion.so',
 				'*.notion.so',
-				'*.snyk-internal.net',
-				'snyk.slack.com',
-				'my.pingdom.com',
-				'zoom.us',
-				'app.logz.io',
-				'docs.google.com'
+				'weaveworks.slack.com',
+				'docs.google.com',
+				'meet.google.com'
 			])],
-			browser: "Firefox",
+			browser: "Google Chrome",
 		},
 		{
 			match: finicky.matchDomains("open.spotify.com"),
 			browser: "Spotify"
 		},
 		{
-			match: ({ keys }) => keys.option,
-			browser: "Firefox",
+			match: () => finicky.getKeys().option,
+			browser: "Google Chrome",
 		}
 	]
 }
