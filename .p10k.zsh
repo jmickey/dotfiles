@@ -18,6 +18,14 @@
 [[ ! -o 'no_brace_expand' ]] || p10k_config_opts+=('no_brace_expand')
 'builtin' 'setopt' 'no_aliases' 'no_sh_glob' 'brace_expand'
 
+prompt_table_flip() {
+  p10k segment -i '' -f 'yellow' -t ' (╯°□°)╯︵ ┻━┻'
+}
+
+prompt_unicron() {
+  p10k segment -i '' -f 'cyan' -t ' jmickey'
+}
+
 () {
   emulate -L zsh -o extended_glob
 
@@ -32,7 +40,7 @@
   typeset -g POWERLEVEL9K_LEFT_PROMPT_ELEMENTS=(
     # =========================[ Line #1 ]=========================
     # os_icon                 # os identifier
-    host
+    unicron
     context
     dir                     # current directory
     vcs                     # git status
@@ -76,13 +84,15 @@
     # phpenv                  # php version from phpenv (https://github.com/phpenv/phpenv)
     # haskell_stack           # haskell version from stack (https://haskellstack.org/)
     kubecontext             # current kubernetes context (https://kubernetes.io/)
-    terraform               # terraform workspace (https://www.terraform.io)
+    tfenv
+    # terraform               # terraform workspace (https://www.terraform.io)
+    # terraform_version
     aws                     # aws profile (https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-profiles.html)
     aws_eb_env              # aws elastic beanstalk environment (https://aws.amazon.com/elasticbeanstalk/)
     # azure                   # azure account name (https://docs.microsoft.com/en-us/cli/azure)
     gcloud                  # google cloud cli account and project (https://cloud.google.com/)
     google_app_cred         # google application credentials (https://cloud.google.com/docs/authentication/production)
-    # context                 # user@hostname
+    # context                 # user@name
     # nordvpn                 # nordvpn connection status, linux only (https://nordvpn.com/)
     # ranger                  # ranger shell (https://github.com/ranger/ranger)
     # nnn                     # nnn shell (https://github.com/jarun/nnn)
@@ -118,7 +128,7 @@
   # change them.
   typeset -g POWERLEVEL9K_BACKGROUND=                            # transparent background
   typeset -g POWERLEVEL9K_{LEFT,RIGHT}_{LEFT,RIGHT}_WHITESPACE=  # no surrounding whitespace
-  typeset -g POWERLEVEL9K_{LEFT,RIGHT}_SUBSEGMENT_SEPARATOR='  '  # separate segments with a space
+  typeset -g POWERLEVEL9K_{LEFT,RIGHT}_SUBSEGMENT_SEPARATOR=' 󰄾 '  # separate segments with a space
   typeset -g POWERLEVEL9K_{LEFT,RIGHT}_SEGMENT_SEPARATOR=        # no end-of-line symbol
 
   # When set to true, icons appear before content on both sides of the prompt. When set
@@ -798,7 +808,7 @@
   ##############[ taskwarrior: taskwarrior task count (https://taskwarrior.org/) ]##############
   # Taskwarrior color.
   typeset -g POWERLEVEL9K_TASKWARRIOR_FOREGROUND=74
-  
+
   # Taskwarrior segment format. The following parameters are available within the expansion.
   #
   # - P9K_TASKWARRIOR_PENDING_COUNT   The number of pending tasks: `task +PENDING count`.
@@ -834,6 +844,7 @@
   # Tip: Remove the next line to always show context.
   typeset -g POWERLEVEL9K_CONTEXT_{DEFAULT,SUDO}_{CONTENT,VISUAL_IDENTIFIER}_EXPANSION=
 
+  typeset -g POWERLEVEL9K_{ROOT,SUDO,USER}_ICON="\uf0f4 "
   typeset -g POWERLEVEL9K_HOST_ICON="\uf0f4 "
   # Custom icon.
   # typeset -g POWERLEVEL9K_CONTEXT_VISUAL_IDENTIFIER_EXPANSION='⭐'
@@ -1526,6 +1537,15 @@
   #   - same-dir: Trim down prompt when accepting a command line unless this is the first command
   #               typed after changing current working directory.
   typeset -g POWERLEVEL9K_TRANSIENT_PROMPT=same-dir
+
+  function prompt_tfenv() {
+    if [[ -z $TFENV_TERRAFORM_VERSION ]]; then
+      TFENV_TERRAFORM_VERSION=$(tfenv version-name)
+    fi
+
+    p10k segment -f 038 -i '' -t "${TFENV_TERRAFORM_VERSION}"
+  }
+  typeset -g POWERLEVEL9K_TFENV_SHOW_ON_COMMAND='terraform|tfenv'
 
   # Instant prompt mode.
   #

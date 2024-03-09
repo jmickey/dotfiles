@@ -1,14 +1,14 @@
 # Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
 # Initialization code that may require console input (password prompts, [y/n]
 # confirmations, etc.) must go above this block; everything else may go below.
-#if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
- # source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
-#fi
+# if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
+#  source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
+# fi
 
 POWERLEVEL9K_MODE="nerdfont-complete"
 
-HISTSIZE=5000
-SAVEHIST=3000
+HISTSIZE=10000
+SAVEHIST=10000
 
 autoload -U colors && colors    # Load colors
 zmodload zsh/complist
@@ -16,6 +16,11 @@ zmodload zsh/complist
 autoload -z edit-command-line
 zle -N edit-command-line
 bindkey "^X^E" edit-command-line
+
+bindkey '^[[1~' beginning-of-line
+bindkey '^[[4~' end-of-line
+bindkey '^[[1;5D' backward-word
+bindkey '^[[1;5C' forward-word
 
 setopt no_case_glob              # Use case-insensitve globbing
 setopt globdots                 # Glob dotfiles as well
@@ -29,12 +34,12 @@ setopt share_history            # Share history between all sessions
 setopt hist_expire_dups_first   # Expire a duplicate event first when trimming history
 setopt hist_ignore_dups         # Do not record an event that was just recorded again
 setopt hist_ignore_all_dups     # Delete an old recorded event if a new event is a duplicate
+setopt hist_find_no_dups        # Don't show dupes when searching history (CTRL-r)
 
 setopt menu_complete            # Do not autoselect the first completion entry
 setopt no_beep
 
 # Zstyle
-
 zstyle ':completion:*:matches' group 'yes'
 zstyle ':completion:*:options' description 'yes'
 zstyle ':completion:*:options' auto-description '%d'
@@ -50,8 +55,13 @@ zstyle ':completion::complete:*' cache-path "$HOME/.zcompcache"
 zstyle ':completion:*:*:kill:*:processes' list-colors '=(#b) #([0-9]#) ([0-9a-z-]#)*=01;34=0=01'
 zstyle ':completion:*:functions' ignored-patterns '(_*|pre(cmd|exec))'
 zstyle ':completion:*' rehash true
+zstyle ':completion:*:git-checkout:*' sort false
+zstyle ':completion:*' menu no
 
 zstyle ':fzf-tab:*' switch-group ',' '.'
+zstyle ':fzf-tab:complete:cd:*' fzf-preview 'eza -1 --color=always $realpath'
+zstyle ':fzf-tab:complete:eza:*' fzf-preview 'eza -1 --color=always $realpath'
+zstyle ':fzf-tab:complete:bat:*' fzf-preview 'bat -n --color=always $realpath'
 
 # User configuration
 DEFAULT_USER=`whoami`
@@ -60,6 +70,8 @@ tab_title() {
   # sets the tab title to current dir
   echo -ne "\e]1;${PWD##*/}\a"
 }
+autoload -Uz add-zsh-hook
+add-zsh-hook precmd tab_title
 
 # Aliases
 alias zshconfig="code ~/.zshrc"
@@ -67,27 +79,33 @@ alias tf="terraform"
 alias ..="cd .."
 alias ...="cd ../.."
 alias ....="cd ../../.."
+alias ls="eza --color=auto"
 alias ll="ls -lah"
 alias la="ls -la"
 alias cat="bat"
-
-# Ensure ls uses colors
-if [[ "$OSTYPE" == darwin* ]]; then
-  alias ls="ls -G"
-else
-  alias ls="ls --color=auto"
-fi
+alias kctx=kubectx
+alias kns=kubens
 
 # Exports! Basic env variables mostly. For secrets use ~/.env file
+eval "$(/opt/homebrew/bin/brew shellenv)"
 export CLICOLOR=1
 export GOPATH=$HOME/go
-export GOROOT=/usr/local/opt/go/libexec
+export GOROOT=$(brew --prefix go)/libexec
 export EDITOR="micro"
 export PYENV_ROOT="$HOME/.pyenv"
 export POETRY_ROOT="$HOME/.poetry"
 export CARGO_ROOT="$HOME/.cargo"
 export SQLITE_ROOT="/usr/local/opt/sqlite"
 export PATH="$GOPATH/bin:$PYENV_ROOT/bin:$POETRY_ROOT/bin:$CARGO_ROOT/bin:$SQLITE_ROOT/bin:$PATH"
+export MICRO_TRUECOLOR=1
+export ZSH_AUTOSUGGEST_USE_ASYNC=1
+
+# Configure FZF options.
+export FZF_CTRL_T_OPTS="--preview 'bat -n --color=always {}' --bind 'ctrl-/:change-preview-window(down|hidden|)'"
+export FZF_ALT_C_OPTS="--preview 'tree -C {}'"
+
+# Setup dircolors, requires `brew install coreutils`
+eval "$(gdircolors -b)"
 
 fpath+=~/.zfunc
 
@@ -111,14 +129,14 @@ ktunnel() {
 [ -f "$HOME/.env" ] && source "$HOME/.env"
 # Load fzf
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
+eval "$(direnv hook zsh)"
 
-# zsh-history-substring-search key bindings
-bindkey '^[[A' history-substring-search-up
-bindkey '^[[B' history-substring-search-down
-
-# eval "$(pyenv init -)"
-autoload -Uz add-zsh-hook
-add-zsh-hook precmd tab_title
+autoload -Uz compinit
+if [[ -n ${ZDOTDIR}/.zcompdump(#qN.mh+24) ]]; then
+	compinit;
+else
+	compinit -C;
+fi;
 
 ### Added by Zinit's installer
 
@@ -139,58 +157,54 @@ autoload -Uz _zinit
 ## Zinit Plugins!
 setopt promptsubst
 PS1="READY >"
-zinit ice wait'!' lucid
-zinit ice depth=1; zinit light romkatv/powerlevel10k
 
-zinit light Aloxaf/fzf-tab
+zinit ice depth'1'
+zinit light romkatv/powerlevel10k
 
-zinit wait lucid for \
-    light-mode zdharma-continuum/history-search-multi-word \
-               zsh-users/zsh-history-substring-search
-
-zinit wait'0a' lucid light-mode for \
-    OMZ::lib/compfix.zsh \
-    OMZ::lib/completion.zsh \
-    OMZ::lib/functions.zsh \
-    OMZ::lib/diagnostics.zsh \
-    OMZ::lib/misc.zsh \
-    OMZ::lib/spectrum.zsh \
-    OMZ::lib/termsupport.zsh \
-    OMZ::lib/git.zsh \
-    OMZ::lib/grep.zsh \
-    OMZ::plugins/asdf/asdf.plugin.zsh \
-    OMZ::plugins/kubectl/kubectl.plugin.zsh \
+zinit silent for \
+    Aloxaf/fzf-tab \
+    OMZL::compfix.zsh \
+    OMZL::functions.zsh \
+    OMZL::diagnostics.zsh \
+    OMZL::misc.zsh \
+    OMZL::git.zsh \
+    OMZL::grep.zsh \
+    OMZP::brew \
+    OMZP::kubectl/kubectl.plugin.zsh \
+    OMZP::aws/aws.plugin.zsh \
+    OMZP::thefuck/thefuck.plugin.zsh \
   atload"unalias grv g" \
-      OMZ::plugins/git/git.plugin.zsh \
-  as"completion" \
-    OMZ::plugins/docker/_docker \
-    OMZ::plugins/thefuck/thefuck.plugin.zsh
+    OMZP::git/git.plugin.zsh \
+  as"completion"  \
+    OMZP::docker/completions/_docker
 
-
-zinit ice svn lucid wait'0b' atinit"local ZSH=\$PWD"
+zinit ice svn lucid wait atinit"local ZSH=\$PWD"
 zinit snippet OMZ::plugins/macos
 
-zinit wait lucid light-mode for \
-  has"kubectl" \
-    id-as"kubectl_completion" \
-    as"completion" \
-    atclone"kubectl completion zsh > _kubectl" \
-    atpull"%atclone" \
-    run-atpull \
-      @jmickey/zinit-null \
+zinit wait'0a' lucid light-mode for \
+  atload'zstyle ":completion:*" list-colors ${(s.:.)LS_COLORS}' \
+    OMZL::completion.zsh \
   atload"zicompinit; zicdreplay" \
     @bonnefoa/kubectl-fzf \
-  blockf \
+  blockf as'completion' \
     zsh-users/zsh-completions \
+  atload"_zsh_autosuggest_start" \
+      zsh-users/zsh-autosuggestions \
+
+zinit wait'0b' silent light-mode for \
+    zdharma-continuum/history-search-multi-word \
+  atload"bindkey '^[[A' history-substring-search-up;
+         bindkey '^[[B' history-substring-search-down" \
+    zsh-users/zsh-history-substring-search \
   atinit"typeset -gA FAST_HIGHLIGHT; \
          FAST_HIGHLIGHT[git-cmsg-len]=70; \
          ZINIT[COMPINIT_OPTS]=-C; \
          zicompinit; zicdreplay" \
-    zdharma-continuum/fast-syntax-highlighting \
-  atload"!_zsh_autosuggest_start" \
-      zsh-users/zsh-autosuggestions
+    zdharma-continuum/fast-syntax-highlighting
 
-export ZSH_AUTOSUGGEST_USE_ASYNC=1
+zinit wait'0c' silent light-mode null for \
+  id-as'cleanup' nocd atinit'_zsh_autosuggest_bind_widgets' \
+    zdharma-continuum/null
 
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
