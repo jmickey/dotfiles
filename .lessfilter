@@ -1,0 +1,7 @@
+#! /usr/bin/env sh
+
+if [ -d "$1" ]; then
+	eza --git -hl --color=always --icons "$1"
+else
+	bat --color=always -n --line-range=:500 "$1"
+fi

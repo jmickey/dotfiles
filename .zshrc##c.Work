@@ -58,10 +58,31 @@ zstyle ':completion:*' rehash true
 zstyle ':completion:*:git-checkout:*' sort false
 zstyle ':completion:*' menu no
 
+zstyle ':fzf-tab:*' fzf-flags \
+  --border=rounded \
+  --layout=reverse \
+  --inline-info \
+  --bind 'ctrl-/:toggle-preview'
+zstyle ':fzf-tab:*' fzf-min-height 30
 zstyle ':fzf-tab:*' switch-group ',' '.'
-zstyle ':fzf-tab:complete:cd:*' fzf-preview 'eza -1 --color=always $realpath'
-zstyle ':fzf-tab:complete:eza:*' fzf-preview 'eza -1 --color=always $realpath'
-zstyle ':fzf-tab:complete:bat:*' fzf-preview 'bat -n --color=always $realpath'
+zstyle ':fzf-tab:complete:git-(add|diff|restore):*' fzf-preview \
+	'git diff $word | delta'
+zstyle ':fzf-tab:complete:git-log:*' fzf-preview \
+	'git log --color=always $word'
+zstyle ':fzf-tab:complete:git-help:*' fzf-preview \
+	'git help $word | bat -plman --color=always'
+zstyle ':fzf-tab:complete:git-checkout:*' fzf-preview \
+	'case "$group" in
+	"modified file") git diff $word | delta ;;
+	"recent commit object name") git show --color=always $word | delta ;;
+	*) git log --color=always $word ;;
+	esac'
+zstyle ':fzf-tab:complete:cd:*' fzf-preview 'less ${(Q)realpath}'
+zstyle ':fzf-tab:complete:eza:*' fzf-preview 'less ${(Q)realpath}'
+zstyle ':fzf-tab:complete:bat:*' fzf-preview 'less ${(Q)realpath}'
+zstyle ':fzf-tab:complete:*:options' fzf-preview 
+zstyle ':fzf-tab:complete:*:argument-1' fzf-preview
+zstyle ':fzf-tab:complete:*:*' fzf-preview 'less ${(Q)realpath}'
 
 # User configuration
 DEFAULT_USER=`whoami`
@@ -83,8 +104,8 @@ alias ls="eza --color=auto"
 alias ll="ls -lah"
 alias la="ls -la"
 alias cat="bat"
-alias kctx=kubectx
-alias kns=kubens
+alias kctx="kubectx"
+alias kns="kubens"
 
 # Exports! Basic env variables mostly. For secrets use ~/.env file
 eval "$(/opt/homebrew/bin/brew shellenv)"
@@ -99,6 +120,7 @@ export SQLITE_ROOT="/usr/local/opt/sqlite"
 export PATH="$GOPATH/bin:$PYENV_ROOT/bin:$POETRY_ROOT/bin:$CARGO_ROOT/bin:$SQLITE_ROOT/bin:$PATH"
 export MICRO_TRUECOLOR=1
 export ZSH_AUTOSUGGEST_USE_ASYNC=1
+export LESSOPEN='|~/.lessfilter %s'
 
 # Configure FZF options.
 export FZF_CTRL_T_OPTS="--preview 'bat -n --color=always {}' --bind 'ctrl-/:change-preview-window(down|hidden|)'"
@@ -161,8 +183,10 @@ PS1="READY >"
 zinit ice depth'1'
 zinit light romkatv/powerlevel10k
 
+zi snippet OMZP::git
+zi cdclear -q # <- forget completions provided by Git plugin
+
 zinit silent for \
-    Aloxaf/fzf-tab \
     OMZL::compfix.zsh \
     OMZL::functions.zsh \
     OMZL::diagnostics.zsh \
@@ -173,25 +197,26 @@ zinit silent for \
     OMZP::kubectl/kubectl.plugin.zsh \
     OMZP::aws/aws.plugin.zsh \
     OMZP::thefuck/thefuck.plugin.zsh \
-  atload"unalias grv g" \
-    OMZP::git/git.plugin.zsh \
   as"completion"  \
     OMZP::docker/completions/_docker
 
 zinit ice svn lucid wait atinit"local ZSH=\$PWD"
 zinit snippet OMZ::plugins/macos
 
+# kubectl-fzf doesn't support custom resources
+  # pick'shell/*.plugin.zsh' \
+  #   @bonnefoa/kubectl-fzf \
+
 zinit wait'0a' lucid light-mode for \
   atload'zstyle ":completion:*" list-colors ${(s.:.)LS_COLORS}' \
     OMZL::completion.zsh \
-  atload"zicompinit; zicdreplay" \
-    @bonnefoa/kubectl-fzf \
   blockf as'completion' \
     zsh-users/zsh-completions \
   atload"_zsh_autosuggest_start" \
-      zsh-users/zsh-autosuggestions \
+    zsh-users/zsh-autosuggestions
 
 zinit wait'0b' silent light-mode for \
+    Aloxaf/fzf-tab \
     zdharma-continuum/history-search-multi-word \
   atload"bindkey '^[[A' history-substring-search-up;
          bindkey '^[[B' history-substring-search-down" \
