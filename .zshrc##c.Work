@@ -123,6 +123,7 @@ export ZSH_AUTOSUGGEST_USE_ASYNC=1
 export LESSOPEN='|~/.lessfilter %s'
 
 # Configure FZF options.
+export FZF_DEFAULT_COMMAND='fd --type f --color=always --exclude .git --ignore-file ~/.gitignore'
 export FZF_CTRL_T_OPTS="--preview 'bat -n --color=always {}' --bind 'ctrl-/:change-preview-window(down|hidden|)'"
 export FZF_ALT_C_OPTS="--preview 'tree -C {}'"
 
@@ -145,6 +146,25 @@ ktunnel() {
   if [[ -z ${SSH_PID+x} ]]; then echo "PID not set" && return 1; fi
   kill $SSH_PID
   unset SSH_PID HTTPS_PROXY
+}
+
+fzftail() {
+  fzf --ansi --no-expect --tac --layout=default --preview-window 30%:hidden:up:wrap --preview 'echo {}' --bind 'ctrl-/:toggle-preview'
+}
+
+kpods() {
+  export NS="$1"
+
+  kubectl get pods $( [[ ! -z "$NS" ]] && (printf %s "-n $NS") || (printf %s '--all-namespaces') ) -owide | \
+    fzf --info=inline --layout=reverse --header-lines=1 --border \
+      --prompt "$(kubectl config current-context | sed 's/-context$//')> " \
+      --bind 'ctrl-/:toggle-preview' \
+      --preview-window up:wrap:follow \
+      --preview 'kubectl logs --follow --tail=1000 $(
+          [[ ! -z $NS ]] && (printf "%s %s %s" --namespace $NS {1}) || (printf "%s %s %s" --namespace {1} {2})
+        )'
+
+  unset NS
 }
 
 # Load secret .env file if it exists
