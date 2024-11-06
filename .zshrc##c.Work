@@ -6,6 +6,7 @@
 # fi
 
 POWERLEVEL9K_MODE="nerdfont-complete"
+DISABLE_MAGIC_FUNCTIONS=true
 
 HISTSIZE=10000
 SAVEHIST=10000
@@ -80,7 +81,7 @@ zstyle ':fzf-tab:complete:git-checkout:*' fzf-preview \
 zstyle ':fzf-tab:complete:cd:*' fzf-preview 'less ${(Q)realpath}'
 zstyle ':fzf-tab:complete:eza:*' fzf-preview 'less ${(Q)realpath}'
 zstyle ':fzf-tab:complete:bat:*' fzf-preview 'less ${(Q)realpath}'
-zstyle ':fzf-tab:complete:*:options' fzf-preview 
+zstyle ':fzf-tab:complete:*:options' fzf-preview
 zstyle ':fzf-tab:complete:*:argument-1' fzf-preview
 zstyle ':fzf-tab:complete:*:*' fzf-preview 'less ${(Q)realpath}'
 
@@ -104,12 +105,13 @@ alias ls="eza --color=auto"
 alias ll="ls -lah"
 alias la="ls -la"
 alias cat="bat"
-alias kctx="kubectx"
+alias kx="kubectx"
 alias kns="kubens"
+alias influxctl="influxctl --config ~/.config/influxdb/config.toml"
 
 # Exports! Basic env variables mostly. For secrets use ~/.env file
 eval "$(/opt/homebrew/bin/brew shellenv)"
-export CLICOLOR=1
+# export CLICOLOR=1
 export GOPATH=$HOME/go
 export GOROOT=$(brew --prefix go)/libexec
 export EDITOR="micro"
@@ -117,15 +119,31 @@ export PYENV_ROOT="$HOME/.pyenv"
 export POETRY_ROOT="$HOME/.poetry"
 export CARGO_ROOT="$HOME/.cargo"
 export SQLITE_ROOT="/usr/local/opt/sqlite"
-export PATH="$GOPATH/bin:$PYENV_ROOT/bin:$POETRY_ROOT/bin:$CARGO_ROOT/bin:$SQLITE_ROOT/bin:$PATH"
+export KREW_ROOT=$HOME/.krew
+export LIBPQ_BIN=/opt/homebrew/opt/libpq/bin
+export PATH="$GOPATH/bin:$PYENV_ROOT/bin:$POETRY_ROOT/bin:$CARGO_ROOT/bin:$SQLITE_ROOT/bin:$KREW_ROOT/bin:$LIBPQ_BIN:$PATH"
 export MICRO_TRUECOLOR=1
-export ZSH_AUTOSUGGEST_USE_ASYNC=1
-export LESSOPEN='|~/.lessfilter %s'
+export ZSH_AUTOSUGGEST_USE_ASYNC=true
+export LESSOPEN='|~/.lessfilter %s's
+. "$HOME/.cargo/env"
 
 # Configure FZF options.
 export FZF_DEFAULT_COMMAND='fd --type f --color=always --exclude .git --ignore-file ~/.gitignore'
-export FZF_CTRL_T_OPTS="--preview 'bat -n --color=always {}' --bind 'ctrl-/:change-preview-window(down|hidden|)'"
+export FZF_DEFAULT_OPTS="--layout=reverse --inline-info --ansi"
+export FZF_CTRL_T_OPTS="--preview 'less {}' --bind 'ctrl-/:change-preview-window(down|hidden|)'"
 export FZF_ALT_C_OPTS="--preview 'tree -C {}'"
+
+# Use fd (https://github.com/sharkdp/fd) for listing path candidates.
+# - The first argument to the function ($1) is the base path to start traversal
+# - See the source code (completion.{bash,zsh}) for the details.
+_fzf_compgen_path() {
+  fd --hidden --follow --exclude ".git" . "$1"
+}
+
+# Use fd to generate the list for directory completion
+_fzf_compgen_dir() {
+  fd --type d --hidden --follow --exclude ".git" . "$1"
+}
 
 # Setup dircolors, requires `brew install coreutils`
 eval "$(gdircolors -b)"
@@ -153,18 +171,13 @@ fzftail() {
 }
 
 kpods() {
-  export NS="$1"
-
-  kubectl get pods $( [[ ! -z "$NS" ]] && (printf %s "-n $NS") || (printf %s '--all-namespaces') ) -owide | \
+  kubectl get pods --all-namespaces -o wide | \
     fzf --info=inline --layout=reverse --header-lines=1 --border \
       --prompt "$(kubectl config current-context | sed 's/-context$//')> " \
       --bind 'ctrl-/:toggle-preview' \
+      --bind 'shift-down:preview-bottom' \
       --preview-window up:wrap:follow \
-      --preview 'kubectl logs --follow --tail=1000 $(
-          [[ ! -z $NS ]] && (printf "%s %s %s" --namespace $NS {1}) || (printf "%s %s %s" --namespace {1} {2})
-        )'
-
-  unset NS
+      --preview "kubectl logs --follow --tail=1000 --namespace {1} {2}" "$@"
 }
 
 # Load secret .env file if it exists

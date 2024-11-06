@@ -1,0 +1,34 @@
+adjust-cell-width = -1
+copy-on-select = clipboard
+
+font-family = "MonoLisa Nerd Font"
+font-style = "Medium Regular"
+font-style-bold = "SemiBold Regular"
+font-feature = calt
+font-feature = liga
+font-feature = zero
+font-feature = ss02
+font-feature = ss03
+font-feature = ss10
+font-size = 16
+theme = tokyonight
+minimum-contrast = 1
+cursor-style-blink = true
+
+macos-titlebar-style = tabs
+macos-option-as-alt = true
+
+keybind = alt+left=esc:[1;5D
+keybind = alt+right=esc:[1;5C
+keybind = cmd+right=esc:[4~
+keybind = cmd+left=esc:[1~
+keybind = cmd+backspace=text:\x15
+keybind = alt+physical:three=text:#
+keybind = shift+enter=ignore
+keybind = ctrl+enter=ignore
+
+shell-integration-features = no-cursor,no-sudo,title
+
+window-inherit-working-directory = false
+window-new-tab-position = end
+window-padding-x = 8

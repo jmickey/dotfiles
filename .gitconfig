@@ -49,12 +49,12 @@
     default = current
     # Make `git push` push relevant annotated tags when pushing branches out.
     followTags = true
-	autoSetupRemote = true
+	  autoSetupRemote = true
 
 [user]
     name = Josh Michielsen
     email = github@mickey.dev
-	signingkey = EC7B9537E6ED431175627703FCC1BEAA5F87CDB1
+	  signingkey = EC7B9537E6ED431175627703FCC1BEAA5F87CDB1
 
 [commit]
     gpgsign = true
@@ -64,10 +64,12 @@
 
 [alias]
     pl = pull
+    plr = pull --rebase
     ps = push
     st = status
     c = commit
     cm = commit -m
+    cam = commit -am
     co = checkout
     cob = checkout -b
     last = log -1 HEAD
