@@ -7,14 +7,81 @@
 // custom settings, run the `open default settings` command
 // from the command palette or from `Zed` application menu.
 {
-  "assistant": {
-    "default_model": {
-      "provider": "copilot_chat",
-      "model": "gpt-4o"
-    },
-    "version": "2",
-    "enabled": true
+  "agent_buffer_font_size": 14.0,
+  "cli_default_open_behavior": "new_window",
+  "outline_panel": {
+    "dock": "right",
   },
+  "collaboration_panel": {
+    "dock": "right",
+  },
+  "agent_servers": {
+    "claude-acp": {
+      "favorite_config_option_values": {
+        "model": [
+          "claude-opus-4-7"
+        ]
+      },
+      "default_config_options": {
+        "model": "opus[1m]",
+      },
+      "type": "registry",
+    },
+  },
+  "edit_predictions": {
+    "provider": "copilot",
+  },
+  "project_panel": {
+    "dock": "right",
+  },
+  "agent": {
+    "dock": "left",
+    "tool_permissions": {
+      "tools": {
+        "terminal": {
+          "always_confirm": [
+            {
+              "pattern": "^git commit.*",
+            },
+            {
+              "pattern": "^kubectl.*",
+            },
+          ],
+        },
+        "delete_path": {
+          "default": "confirm",
+        },
+      },
+      "default": "allow",
+    },
+    "play_sound_when_agent_done": "always",
+    "default_profile": "write",
+    "default_model": {
+      "effort": "high",
+      "enable_thinking": true,
+      "provider": "anthropic",
+      "model": "claude-opus-4-7",
+    },
+    "commit_message_model": {
+      "provider": "anthropic",
+      "model": "claude-sonnet-4-6-latest",
+    },
+    "thread_summary_model": {
+      "provider": "anthropic",
+      "model": "claude-sonnet-4-6-latest",
+    },
+    "inline_assistant_model": {
+      "provider": "anthropic",
+      "model": "claude-sonnet-4-6-latest",
+    },
+    "enabled": true,
+  },
+  "auto_update": true,
+  "agent_ui_font_size": 16.0,
+  "git_panel": {
+    "dock": "right",
+  },
+  "show_edit_predictions": true,
   "autosave": "on_focus_change",
   "base_keymap": "VSCode",
   "buffer_font_family": "MonoLisa",
@@ -24,69 +91,75 @@
     "zero": true,
     "ss02": true,
     "ss03": true,
-    "ss10": true
+    "ss10": true,
   },
-  "buffer_font_size": 15,
+  "buffer_font_size": 15.0,
   "buffer_line_height": "comfortable",
-  "chat_panel": {
-    "button": false
-  },
+  "close_on_file_delete": true,
   "ensure_final_newline_on_save": true,
-  "features": {
-    "copilot": true
+  "file_types": {
+    "Helm": [
+      "**/templates/**/*.tpl",
+      "**/templates/**/*.yaml",
+      "**/templates/**/*.yml",
+      "**/helmfile.d/**/*.yaml",
+      "**/helmfile.d/**/*.yml",
+      "**/values*.yaml",
+    ],
   },
   "git": {
     "git_gutter": "tracked_files",
     "inline_blame": {
-      "enabled": false
-    }
+      "enabled": false,
+    },
   },
   "indent_guides": {
     "active_line_width": 2,
     "coloring": "fixed",
-    "line_width": 1
+    "line_width": 1,
   },
   "languages": {
     "Go": {
       "code_actions_on_format": {
-        "source.organizeImports": true
+        "source.organizeImports": true,
       },
       "hard_tabs": true,
       "soft_wrap": "none",
-      "wrap_guides": [120]
+      "wrap_guides": [120],
+      "semantic_tokens": "combined",
     },
     "Python": {
       "preferred_line_length": 80,
-      "wrap_guides": [80]
+      "wrap_guides": [80],
+      "semantic_tokens": "combined",
     },
     "Terraform": {
+      "format_on_save": "on",
       "formatter": {
-        "external": {
-          "command": "terraform",
-          "arguments": ["fmt", "-"]
-        }
-      }
+        "language_server": { "name": "terraform-ls" },
+      },
+      "semantic_tokens": "combined",
     },
     "TOML": {
-      "ensure_final_newline_on_save": true
+      "ensure_final_newline_on_save": true,
     },
     "YAML": {
-      "format_on_save": "off"
-    }
+      "format_on_save": "off",
+    },
   },
   "lsp": {
     "terraform-ls": {
       "initialization_options": {
         "experimentalFeatures": {
-          "prefillRequiredFields": true
-        }
-      }
-    }
+          "prefillRequiredFields": true,
+        },
+      },
+    },
   },
   "preview_tabs": {
     "enabled": true,
-    "enable_preview_from_code_navigation": true,
-    "enable_preview_from_file_finder": true
+    "enable_keep_preview_on_code_navigation": true,
+    "enable_preview_from_file_finder": true,
   },
   "scroll_beyond_last_line": "vertical_scroll_margin",
   "show_whitespaces": "all",
@@ -94,14 +167,16 @@
   "tab_size": 2,
   "telemetry": {
     "diagnostics": false,
-    "metrics": false
+    "metrics": false,
   },
   "terminal": {
+    "font_weight": 400.0,
     "font_family": "MonoLisa Nerd Font",
-    "copy_on_select": true
+    "font_size": 15.0,
+    "copy_on_select": true,
   },
   "theme": "Tokyo Night",
-  "ui_font_family": "Zed Sans",
-  "ui_font_size": 16,
-  "wrap_guides": [80, 120]
+  "ui_font_family": "Noto Sans",
+  "ui_font_size": 15.0,
+  "wrap_guides": [80, 120],
 }

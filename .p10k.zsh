@@ -82,7 +82,7 @@ prompt_unicron() {
     # scalaenv                # scala version from scalaenv (https://github.com/scalaenv/scalaenv)
     # haskell_stack           # haskell version from stack (https://haskellstack.org/)
     kubecontext             # current kubernetes context (https://kubernetes.io/)
-    tfenv
+    # tfenv
     # terraform               # terraform workspace (https://www.terraform.io)
     # terraform_version     # terraform version (https://www.terraform.io)
     aws                     # aws profile (https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-profiles.html)

@@ -23,21 +23,21 @@ bindkey '^[[4~' end-of-line
 bindkey '^[[1;5D' backward-word
 bindkey '^[[1;5C' forward-word
 
-setopt no_case_glob              # Use case-insensitve globbing
+setopt no_case_glob             # Use case-insensitve globbing
 setopt globdots                 # Glob dotfiles as well
 setopt extendedglob             # Use extended globbing
 setopt autocd                   # Automatically change directory if a directory is entered
 setopt auto_pushd
 setopt rc_quotes
 
-setopt inc_append_history       # Write to the history file immediately, not when the shell exits
+# setopt inc_append_history       # Write to the history file immediately, not when the shell exits
 setopt share_history            # Share history between all sessions
 setopt hist_expire_dups_first   # Expire a duplicate event first when trimming history
 setopt hist_ignore_dups         # Do not record an event that was just recorded again
 setopt hist_ignore_all_dups     # Delete an old recorded event if a new event is a duplicate
 setopt hist_find_no_dups        # Don't show dupes when searching history (CTRL-r)
 
-setopt menu_complete            # Do not autoselect the first completion entry
+setopt menu_complete            # Autoselect the first completion entry
 setopt no_beep
 
 # Zstyle
@@ -86,14 +86,8 @@ zstyle ':fzf-tab:complete:*:argument-1' fzf-preview
 zstyle ':fzf-tab:complete:*:*' fzf-preview 'less ${(Q)realpath}'
 
 # User configuration
-DEFAULT_USER=`whoami`
-DISABLE_AUTO_TITLE="true"
-tab_title() {
-  # sets the tab title to current dir
-  echo -ne "\e]1;${PWD##*/}\a"
-}
+DEFAULT_USER=$(whoami)
 autoload -Uz add-zsh-hook
-add-zsh-hook precmd tab_title
 
 # Aliases
 alias zshconfig="code ~/.zshrc"
@@ -107,29 +101,30 @@ alias la="ls -la"
 alias cat="bat"
 alias kx="kubectx"
 alias kns="kubens"
+alias k9s="k9s --logoless"
+alias k9sr="k9s --logoless --readonly"
 alias influxctl="influxctl --config ~/.config/influxdb/config.toml"
+alias zed="zed-preview"
 
 # Exports! Basic env variables mostly. For secrets use ~/.env file
 eval "$(/opt/homebrew/bin/brew shellenv)"
 # export CLICOLOR=1
 export GOPATH=$HOME/go
-export GOROOT=$(brew --prefix go)/libexec
+export GOROOT="/opt/homebrew/opt/go/libexec"
 export EDITOR="micro"
-export PYENV_ROOT="$HOME/.pyenv"
-export POETRY_ROOT="$HOME/.poetry"
-export CARGO_ROOT="$HOME/.cargo"
 export SQLITE_ROOT="/usr/local/opt/sqlite"
 export KREW_ROOT=$HOME/.krew
 export LIBPQ_BIN=/opt/homebrew/opt/libpq/bin
-export PATH="$GOPATH/bin:$PYENV_ROOT/bin:$POETRY_ROOT/bin:$CARGO_ROOT/bin:$SQLITE_ROOT/bin:$KREW_ROOT/bin:$LIBPQ_BIN:$PATH"
+export RANCHER_BIN=$HOME/.rd/bin
+export PATH="$GOPATH/bin:$SQLITE_ROOT/bin:$KREW_ROOT/bin:$LIBPQ_BIN:$RANCHER_BIN:$PATH"
 export MICRO_TRUECOLOR=1
 export ZSH_AUTOSUGGEST_USE_ASYNC=true
-export LESSOPEN='|~/.lessfilter %s's
+export LESSOPEN='|~/.lessfilter %s'
 . "$HOME/.cargo/env"
 
 # Configure FZF options.
 export FZF_DEFAULT_COMMAND='fd --type f --color=always --exclude .git --ignore-file ~/.gitignore'
-export FZF_DEFAULT_OPTS="--layout=reverse --inline-info --ansi"
+export FZF_DEFAULT_OPTS="--extended --layout=reverse --inline-info --ansi"
 export FZF_CTRL_T_OPTS="--preview 'less {}' --bind 'ctrl-/:change-preview-window(down|hidden|)'"
 export FZF_ALT_C_OPTS="--preview 'tree -C {}'"
 
@@ -146,7 +141,10 @@ _fzf_compgen_dir() {
 }
 
 # Setup dircolors, requires `brew install coreutils`
-eval "$(gdircolors -b)"
+if [[ ! -f ~/.dircolors.cache ]] || [[ ~/.dircolors -nt ~/.dircolors.cache ]]; then
+  gdircolors -b > ~/.dircolors.cache
+fi
+source ~/.dircolors.cache
 
 fpath+=~/.zfunc
 
@@ -184,14 +182,10 @@ kpods() {
 [ -f "$HOME/.env" ] && source "$HOME/.env"
 # Load fzf
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
-eval "$(direnv hook zsh)"
-
-autoload -Uz compinit
-if [[ -n ${ZDOTDIR}/.zcompdump(#qN.mh+24) ]]; then
-	compinit;
-else
-	compinit -C;
-fi;
+if [[ ! -f ~/.direnv.cache ]] || [[ $(command -v direnv) -nt ~/.direnv.cache ]]; then
+  direnv hook zsh > ~/.direnv.cache
+fi
+source ~/.direnv.cache
 
 ### Added by Zinit's installer
 
@@ -229,18 +223,14 @@ zinit silent for \
     OMZP::brew \
     OMZP::kubectl/kubectl.plugin.zsh \
     OMZP::aws/aws.plugin.zsh \
-    OMZP::thefuck/thefuck.plugin.zsh \
   as"completion"  \
     OMZP::docker/completions/_docker
 
-zinit ice svn lucid wait atinit"local ZSH=\$PWD"
+zinit ice svn lucid wait'0a' atinit"local ZSH=\$PWD"
 zinit snippet OMZ::plugins/macos
 
-# kubectl-fzf doesn't support custom resources
-  # pick'shell/*.plugin.zsh' \
-  #   @bonnefoa/kubectl-fzf \
-
 zinit wait'0a' lucid light-mode for \
+  OMZP::thefuck/thefuck.plugin.zsh \
   atload'zstyle ":completion:*" list-colors ${(s.:.)LS_COLORS}' \
     OMZL::completion.zsh \
   blockf as'completion' \
@@ -261,6 +251,10 @@ zinit wait'0b' silent light-mode for \
     zdharma-continuum/fast-syntax-highlighting
 
 zinit wait'0c' silent light-mode null for \
+  id-as'bash-completions' nocd \
+  atinit'autoload -U +X bashcompinit && bashcompinit;
+         complete -o nospace -C $(which tofu) tofu' \
+    zdharma-continuum/null \
   id-as'cleanup' nocd atinit'_zsh_autosuggest_bind_widgets' \
     zdharma-continuum/null
 

@@ -1,9 +1,11 @@
-adjust-cell-width = -1
+auto-update-channel = stable
 copy-on-select = clipboard
 
 font-family = "MonoLisa Nerd Font"
 font-style = "Medium Regular"
 font-style-bold = "SemiBold Regular"
+font-thicken = true
+font-thicken-strength = 0
 font-feature = calt
 font-feature = liga
 font-feature = zero
@@ -14,9 +16,11 @@ font-size = 16
 theme = tokyonight
 minimum-contrast = 1
 cursor-style-blink = true
+cursor-click-to-move = true
 
 macos-titlebar-style = tabs
 macos-option-as-alt = true
+macos-icon = xray
 
 keybind = alt+left=esc:[1;5D
 keybind = alt+right=esc:[1;5C
@@ -24,10 +28,11 @@ keybind = cmd+right=esc:[4~
 keybind = cmd+left=esc:[1~
 keybind = cmd+backspace=text:\x15
 keybind = alt+physical:three=text:#
-keybind = shift+enter=ignore
+keybind = shift+enter=text:\n
 keybind = ctrl+enter=ignore
 
-shell-integration-features = no-cursor,no-sudo,title
+shell-integration=zsh
+shell-integration-features = no-cursor,sudo,title
 
 window-inherit-working-directory = false
 window-new-tab-position = end

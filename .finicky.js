@@ -1,7 +1,7 @@
-module.exports = {
+export default {
   defaultBrowser: "Firefox Developer Edition",
   options: {
-    hideIcon: false,
+    checkForUpdates: true,
   },
   handlers: [
     {
@@ -9,7 +9,11 @@ module.exports = {
       browser: "us.zoom.xos",
     },
     {
-      match: finicky.matchDomains(["twitter.com", "linkedin.com"]),
+      match: finicky.matchHostnames(["twitter.com", "linkedin.com"]),
+      browser: "Firefox Developer Edition",
+    },
+    {
+      match: (url, options) => ["Telegram"].includes(options.opener.name),
       browser: "Firefox Developer Edition",
     },
     {
@@ -33,11 +37,15 @@ module.exports = {
       browser: "Google Chrome",
     },
     {
-      match: finicky.matchDomains("open.spotify.com"),
+      match: finicky.matchHostnames("open.spotify.com"),
       browser: "Spotify",
     },
     {
-      match: () => finicky.getKeys().option,
+      match: (url, options) => ["Slack"].includes(options.opener.name),
+      browser: "Google Chrome",
+    },
+    {
+      match: () => finicky.getModifierKeys().option,
       browser: "Google Chrome",
     },
   ],
