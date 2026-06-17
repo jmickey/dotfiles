@@ -228,8 +228,6 @@ cask "joplin"
 cask "linear"
 # Software for Logitech devices
 cask "logi-options+"
-# Software for Logitech devices
-cask "logitech-options"
 # Clipboard manager
 cask "maccy"
 # PDF reader, editor and annotator
