@@ -1,0 +1,233 @@
+# Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
+# Initialization code that may require console input (password prompts, [y/n]
+# confirmations, etc.) must go above this block; everything else may go below.
+# if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
+#  source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
+# fi
+
+POWERLEVEL9K_MODE="nerdfont-complete"
+DISABLE_MAGIC_FUNCTIONS=true
+
+HISTSIZE=10000
+SAVEHIST=10000
+
+autoload -U colors && colors    # Load colors
+zmodload zsh/complist
+
+autoload -z edit-command-line
+zle -N edit-command-line
+bindkey "^X^E" edit-command-line
+
+bindkey '^[[1~' beginning-of-line
+bindkey '^[[4~' end-of-line
+bindkey '^[[1;5D' backward-word
+bindkey '^[[1;5C' forward-word
+
+setopt no_case_glob             # Use case-insensitve globbing
+setopt globdots                 # Glob dotfiles as well
+setopt extendedglob             # Use extended globbing
+setopt autocd                   # Automatically change directory if a directory is entered
+setopt auto_pushd
+setopt rc_quotes
+
+# setopt inc_append_history       # Write to the history file immediately, not when the shell exits
+setopt share_history            # Share history between all sessions
+setopt hist_expire_dups_first   # Expire a duplicate event first when trimming history
+setopt hist_ignore_dups         # Do not record an event that was just recorded again
+setopt hist_ignore_all_dups     # Delete an old recorded event if a new event is a duplicate
+setopt hist_find_no_dups        # Don't show dupes when searching history (CTRL-r)
+
+setopt menu_complete            # Autoselect the first completion entry
+setopt no_beep
+
+# Zstyle
+zstyle ':completion:*:matches' group 'yes'
+zstyle ':completion:*:options' description 'yes'
+zstyle ':completion:*:options' auto-description '%d'
+zstyle ':completion:*:corrections' format ' %F{green}-- %d (errors: %e) --%f'
+zstyle ':completion:*:descriptions' format '[%d]'
+zstyle ':completion:*:messages' format ' %F{purple} -- %d --%f'
+zstyle ':completion:*:warnings' format ' %F{red}-- no matches found --%f'
+zstyle ':completion:*:default' list-prompt '%S%M matches%s'
+zstyle ':completion:*' group-name ''
+zstyle ':completion:*' verbose yes
+zstyle ':completion::complete:*' use-cache on
+zstyle ':completion::complete:*' cache-path "$HOME/.zcompcache"
+zstyle ':completion:*:*:kill:*:processes' list-colors '=(#b) #([0-9]#) ([0-9a-z-]#)*=01;34=0=01'
+zstyle ':completion:*:functions' ignored-patterns '(_*|pre(cmd|exec))'
+zstyle ':completion:*' rehash true
+zstyle ':completion:*:git-checkout:*' sort false
+zstyle ':completion:*' menu no
+
+zstyle ':fzf-tab:*' fzf-flags \
+  --border=rounded \
+  --layout=reverse \
+  --inline-info \
+  --bind 'ctrl-/:toggle-preview'
+zstyle ':fzf-tab:*' fzf-min-height 30
+zstyle ':fzf-tab:*' switch-group ',' '.'
+zstyle ':fzf-tab:complete:git-(add|diff|restore):*' fzf-preview \
+	'git diff $word | delta'
+zstyle ':fzf-tab:complete:git-log:*' fzf-preview \
+	'git log --color=always $word'
+zstyle ':fzf-tab:complete:git-help:*' fzf-preview \
+	'git help $word | bat -plman --color=always'
+zstyle ':fzf-tab:complete:git-checkout:*' fzf-preview \
+	'case "$group" in
+	"modified file") git diff $word | delta ;;
+	"recent commit object name") git show --color=always $word | delta ;;
+	*) git log --color=always $word ;;
+	esac'
+zstyle ':fzf-tab:complete:cd:*' fzf-preview 'less ${(Q)realpath}'
+zstyle ':fzf-tab:complete:eza:*' fzf-preview 'less ${(Q)realpath}'
+zstyle ':fzf-tab:complete:bat:*' fzf-preview 'less ${(Q)realpath}'
+zstyle ':fzf-tab:complete:*:options' fzf-preview
+zstyle ':fzf-tab:complete:*:argument-1' fzf-preview
+zstyle ':fzf-tab:complete:*:*' fzf-preview 'less ${(Q)realpath}'
+
+# User configuration
+DEFAULT_USER=$(whoami)
+autoload -Uz add-zsh-hook
+
+# Aliases
+alias zshconfig="micro ~/.zshrc"
+alias ..="cd .."
+alias ...="cd ../.."
+alias ....="cd ../../.."
+alias ls="eza --color=auto"
+alias ll="ls -lah"
+alias la="ls -la"
+alias cat="bat"
+alias zed="zed-preview"
+
+# Exports! Basic env variables mostly. For secrets use ~/.env file
+eval "$(/opt/homebrew/bin/brew shellenv)"
+# export CLICOLOR=1
+export GOPATH=$HOME/go
+export GOROOT="/opt/homebrew/opt/go/libexec"
+export EDITOR="micro"
+export PATH="$GOPATH/bin:$PATH"
+export MICRO_TRUECOLOR=1
+export ZSH_AUTOSUGGEST_USE_ASYNC=true
+export LESSOPEN='|~/.lessfilter %s'
+
+# Configure FZF options.
+export FZF_DEFAULT_COMMAND='fd --type f --color=always --exclude .git --ignore-file ~/.gitignore'
+export FZF_DEFAULT_OPTS="--extended --layout=reverse --inline-info --ansi"
+export FZF_CTRL_T_OPTS="--preview 'less {}' --bind 'ctrl-/:change-preview-window(down|hidden|)'"
+export FZF_ALT_C_OPTS="--preview 'tree -C {}'"
+
+# Use fd (https://github.com/sharkdp/fd) for listing path candidates.
+# - The first argument to the function ($1) is the base path to start traversal
+# - See the source code (completion.{bash,zsh}) for the details.
+_fzf_compgen_path() {
+  fd --hidden --follow --exclude ".git" . "$1"
+}
+
+# Use fd to generate the list for directory completion
+_fzf_compgen_dir() {
+  fd --type d --hidden --follow --exclude ".git" . "$1"
+}
+
+# Setup dircolors, requires `brew install coreutils`
+if [[ ! -f ~/.dircolors.cache ]] || [[ ~/.dircolors -nt ~/.dircolors.cache ]]; then
+  gdircolors -b > ~/.dircolors.cache
+fi
+source ~/.dircolors.cache
+
+fpath+=~/.zfunc
+
+whoseport() {
+  lsof -i ":$1" | grep LISTEN
+}
+
+tunnel() {
+  ssh -Nn -D 127.0.0.1:2424 "$1" &
+  SSH_PID=$!
+  export HTTPS_PROXY=socks5://localhost:2424
+}
+
+ktunnel() {
+  if [[ -z ${SSH_PID+x} ]]; then echo "PID not set" && return 1; fi
+  kill $SSH_PID
+  unset SSH_PID HTTPS_PROXY
+}
+
+fzftail() {
+  fzf --ansi --no-expect --tac --layout=default --preview-window 30%:hidden:up:wrap --preview 'echo {}' --bind 'ctrl-/:toggle-preview'
+}
+
+# Load secret .env file if it exists
+[ -f "$HOME/.env" ] && source "$HOME/.env"
+# Load fzf
+[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
+if [[ ! -f ~/.direnv.cache ]] || [[ $(command -v direnv) -nt ~/.direnv.cache ]]; then
+  direnv hook zsh > ~/.direnv.cache
+fi
+source ~/.direnv.cache
+
+### Added by Zinit's installer
+
+if [[ ! -f $HOME/.zinit/bin/zinit.zsh ]]; then
+    print -P "%F{33}▓▒░ %F{220}Installing %F{33}DHARMA%F{220} Initiative Plugin Manager (%F{33}zdharma-continuum/zinit%F{220})…%f"
+    command mkdir -p "$HOME/.zinit" && command chmod g-rwX "$HOME/.zinit"
+    command git clone https://github.com/zdharma-continuum/zinit "$HOME/.zinit/bin" && \
+        print -P "%F{33}▓▒░ %F{34}Installation successful.%f%b" || \
+        print -P "%F{160}▓▒░ The clone has failed.%f%b"
+fi
+
+source "$HOME/.zinit/bin/zinit.zsh"
+autoload -Uz _zinit
+(( ${+_comps} )) && _comps[zinit]=_zinit
+
+### End of Zinit's installer chunk
+
+## Zinit Plugins!
+setopt promptsubst
+PS1="READY >"
+
+zinit ice depth'1'
+zinit light romkatv/powerlevel10k
+
+zi snippet OMZP::git
+zi cdclear -q # <- forget completions provided by Git plugin
+
+zinit silent for \
+    OMZL::compfix.zsh \
+    OMZL::functions.zsh \
+    OMZL::diagnostics.zsh \
+    OMZL::misc.zsh \
+    OMZL::git.zsh \
+    OMZL::grep.zsh \
+    OMZP::brew
+
+zinit ice svn lucid wait'0a' atinit"local ZSH=\$PWD"
+zinit snippet OMZ::plugins/macos
+
+zinit wait'0a' lucid light-mode for \
+  OMZP::thefuck/thefuck.plugin.zsh \
+  atload'zstyle ":completion:*" list-colors ${(s.:.)LS_COLORS}' \
+    OMZL::completion.zsh \
+  blockf as'completion' \
+    zsh-users/zsh-completions \
+  atload"_zsh_autosuggest_start" \
+    zsh-users/zsh-autosuggestions
+
+zinit wait'0b' silent light-mode for \
+    Aloxaf/fzf-tab \
+    zdharma-continuum/history-search-multi-word \
+  atload"bindkey '^[[A' history-substring-search-up;
+         bindkey '^[[B' history-substring-search-down" \
+    zsh-users/zsh-history-substring-search \
+  atinit"typeset -gA FAST_HIGHLIGHT; \
+         FAST_HIGHLIGHT[git-cmsg-len]=70; \
+         ZINIT[COMPINIT_OPTS]=-C; \
+         zicompinit; zicdreplay" \
+    zdharma-continuum/fast-syntax-highlighting
+
+zinit wait'0c' silent light-mode null for \
+  id-as'cleanup' nocd atinit'_zsh_autosuggest_bind_widgets' \
+    zdharma-continuum/null
+
+# To customize prompt, run `p10k configure` or edit ~/.p10k.zsh
+[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
